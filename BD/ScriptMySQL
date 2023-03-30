@@ -1,0 +1,48 @@
+create database alumnosMod;
+use alumnosMod;
+create table Alumnos(
+	idAlumno int auto_increment not null,
+    nombre varchar(60)not null,
+    telCasa int(10) not null,
+    telTrabajo int(10) not null,
+    telPersonal int(10) not null,
+    direccion varchar(60) not null,
+    direccionAlt varchar(60) not null,
+    estatus varchar(10) not null,
+    constraint pk_Alumnos primary key(idAlumno)
+);
+create table Carreras(
+	idCarrera int auto_increment not null,
+    nombre varchar(60)not null,
+    estatus varchar(10) not null,
+    constraint pk_Carreras primary key(idCarrera)
+);
+create table Especialidades(
+	idEspecialidad int auto_increment not null,
+    nombre varchar(60)not null,
+    estatus varchar(10) not null,
+    constraint pk_Especialidades primary key(idEspecialidad)
+);
+create table PlanesDeEstudio(
+	idPlanEstudio int auto_increment not null,
+    nombre varchar(20)not null,
+    creditosTotal int not null,
+    anioImplemnt date not null,
+    estatus varchar(10) not null,
+    constraint pk_PlanesDeEstudio primary key(idPlanEstudio)
+);
+create table Generaciones(
+	idGeneracion int auto_increment not null,
+    fechaIngreso date not null,
+    semestreMaxEgreso date not null,
+    estatus varchar(10) not null,
+    constraint pk_Generaciones primary key(idGeneracion)
+);
+
+/*Crear un usuario para la conexion con la app*/
+create user user_alumnosmod identified by 'Alumno#u538';
+grant select, insert, update, delete on alumnosmod.Alumnos to user_alumnosmod;
+grant select, insert, update, delete on alumnosmod.Carreras to user_alumnosmod; 
+grant select, insert, update, delete on alumnosmod.Especialidades to user_alumnosmod; 
+grant select, insert, update, delete on alumnosmod.PlanesDeEstudio to user_alumnosmod; 
+grant select, insert, update, delete on alumnosmod.Generaciones to user_alumnosmod;
