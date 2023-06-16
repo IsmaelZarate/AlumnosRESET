@@ -1,0 +1,44 @@
+from flask import Blueprint, request
+from V1.model import Solicitud
+
+solicitudBP = Blueprint('SolicitudBP', __name__)
+
+@solicitudBP.route('/Solicitudes/V1', methods=['GET'])
+def listadoSolicitudes():
+    solicitud=Solicitud()
+    return solicitud.consultaGeneral()
+
+@solicitudBP.route('/Solicitudes/V1/<int:id>', methods=['GET'])
+def listarSolicitud(id):
+    solicitud = Solicitud()
+    return solicitud.consultaIndividual(id)
+
+@solicitudBP.route('/Solicitudes/V1', methods = ['POST'])
+def agregarSolicitud():
+    solicitud = Solicitud()
+    data = request.get_json()
+    return solicitud.agregar(data)
+
+@solicitudBP.route('/Solicitudes/', methods=['PUT'])
+def editarSolicitud():
+    solicitud = Solicitud()
+    data = request.get_json()
+    return solicitud.editar(data)
+
+
+
+@solicitudBP.route('/Solicitudes/evidencias')
+def listadoEvidencias():
+    respuesta={"estatus":"200","mensaje":"Listado de evidencias de las solicitudes"}
+    return respuesta
+
+
+@solicitudBP.route('/Solicitudes/<int:id>', methods=['DELETE'])
+def eliminarSolicitud(id):
+    respuesta={"estatus":"200","mensaje":"Eliminando la solicitud con id:"+str(id)}
+    return respuesta
+
+@solicitudBP.route('/Solicitudes/<string:nc>')
+def consultarSolicitud(nc):
+    respuesta={"estatus":"200","mensaje":"Buscando la solicitud que registro el alumno con NC:"+nc}
+    return respuesta
