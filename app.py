@@ -1,13 +1,25 @@
 from flask import Flask, jsonify, request
-# from V1.SolicitudesBPV1 import solicitudBP
+from V1.model import Opcion, db, Solicitud, Carreras
+from V1.SolicitudesBPV1 import solicitudBP
 
-from V1.model import Alumnos, db, Carrera
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
+
 
 app = Flask(__name__)
-# app.register_blueprint(solicitudBP)
-# app.register_blueprint(solicitudBPV2)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:hola@localhost/servicioAlumno'
+
+app.register_blueprint(solicitudBP)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Zarate15@/ServiciosCarreras'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+users = {
+    "ismael": {"password": generate_password_hash("12345"), "role": "consult"},
+    "miguel": {"password": generate_password_hash("123456"), "role": "add-consult"}
+}
+
+
+
 
 
 @app.route('/', methods=['GET'])
@@ -15,68 +27,110 @@ def init():
     return {"mensaje": "Escuchando el Servicio REST de Solicitudes"}
 
 
-@app.route('/Usuarios/Alumnos', methods=['GET'])
-def listarAlumnos():
-    alumno = Alumnos()
-    return jsonify(alumno.consultarAlumnos())
+# Rutta para el listado general de Carreras
+@app.route('/Carreras/V1', methods=['GET'])
+def listadoSolicitudes():
+    carreras = Carreras()
+    return carreras.consultaGeneral()
 
 
-@app.route('/Usuarios/AlumnosAg', methods=['POST'])
-def AgregarAlumnos():
-    idAlumno = request.json.get('idAlumno')
-    nombre = request.json.get('nombre'),
-    anioIngreso = request.json.get('anioIngreso'),
-    anioEgreso = request.json.get('anioEgreso'),
-    sexo = request.json.get('sexo'),
-    telefono = request.json.get('telefono'),
-    correo = request.json.get('correo'),
-    passwords = request.json.get('passwords'),
-    nControl = request.json.get('nControl'),
-    tipo = request.json.get('tipo'),
-    estatus = request.json.get('estatus'),
+# Ruta para el listado indvidual de solicitudes en base al id de la solicitud
+@app.route('/Solicitudes/v1/<int:id>', methods=['GET'])
+def listarSolicitud(id):
+    solicitud = Solicitud()
+    return solicitud.consultaIndividual(id)
+
+
+@app.route('/Agregar/V1', methods=['POST'])
+def AgregarCarrera():
     idCarrera = request.json.get('idCarrera')
+    nombre = request.json.get('nombre')
+    siglas = request.json.get('siglas')
+    creditos = request.json.get('creditos')
+    planEstudios = request.json.get('planEstudios')
+    especialidad = request.json.get('especialidad')
+    estatus = request.json.get('estatus')
 
-    alumno = Alumnos()
-    respuesta = alumno.insertarAlumno(idAlumno, nombre, anioIngreso, anioEgreso, sexo, telefono, correo, passwords,
-                                      nControl, tipo, estatus, idCarrera)
+    if idCarrera is None or nombre is None or siglas is None or creditos is None or planEstudios is None or especialidad is None or estatus is None:
+        return jsonify({"mensaje": "Campos incompletos"}), 400
+
+    carrerasAdd = Carreras()
+
+    respuesta = carrerasAdd.insertarCarrera(idCarrera, nombre, siglas, creditos, planEstudios, especialidad, estatus)
     return jsonify(respuesta)
 
 
-@app.route('/Usuarios/AlumnosEl/<int:idAlumno>', methods=['DELETE'])
-def eliminarAlumno(idAlumno):
-    if request.method == 'DELETE':
-        alumno = Alumnos()
-        respuesta = alumno.eliminarAlumno(idAlumno)
-    return jsonify(respuesta)
-
-
-
-
-@app.route('/Usuarios/AlumnosEd/<int:idAlumno>', methods=['PUT'])
-def editarAlumno(idAlumno):
-    alumno = Alumnos()
+# Modificafr carrera
+@app.route('/Update/V1/<int:idCarrera>', methods=['PUT'])
+def editarCarrera(idCarrera):
+    carrerasUpdate = Carreras()
     if request.method == 'PUT':
         nombre = request.json.get('nombre')
-        anioIngreso = request.json.get('anioIngreso')
-        anioEgreso = request.json.get('anioEgreso')
-        sexo = request.json.get('sexo')
-        telefono = request.json.get('telefono')
-        correo = request.json.get('correo')
-        paswords = request.json.get('passwords')
-        nControl = request.json.get('nControl')
-        tipo = request.json.get('tipo')
+        siglas = request.json.get('siglas')
+        creditos = request.json.get('creditos')
+        planEstudios = request.json.get('planEstudios')
+        especialidad = request.json.get('especialidad')
         estatus = request.json.get('estatus')
-        idCarrera = request.json.get('idCarrera')
 
-        if idAlumno is None or nombre is None or anioIngreso is None or anioEgreso is None or sexo is None or telefono is None or correo is None or paswords is None or nControl is None or tipo is None or estatus is None:
+        if idCarrera is None or nombre is None or siglas is None or creditos is None or planEstudios is None or especialidad is None or estatus is None:
             return jsonify({"mensaje": "Campos incompletos"}), 400
 
-        alumno = Alumnos()
-        respuesta = alumno.editarAlumno(idAlumno, nombre, anioIngreso, anioEgreso, sexo, telefono, correo,
-                                              paswords, nControl, tipo, estatus,idCarrera)
+        carrera = Carreras()
+        respuesta = carrera.actualizarCarrera(idCarrera, nombre, siglas, creditos, planEstudios, especialidad, estatus)
+
+        return jsonify(respuesta)
+
+
+# Rutta para el listado general de Carreras
+@app.route('/Delete/V1/<int:idCarrera>', methods=['DELETE'])
+def deleteCarrera(idCarrera):
+    if request.method == 'DELETE':
+        carreraDE = Carreras()
+        respuesta = carreraDE.eliminarCarrera(idCarrera)
 
     return jsonify(respuesta)
 
+
+# Ruta para agregar una solicitud
+@app.route('/Solicitudes/v1', methods=['POST'])
+def agregarSolicitud():
+    solicitud = Solicitud()
+    data = request.get_json()
+    return solicitud.agregar(data)
+
+
+# Ruta para editar los datos de una solicitud
+@app.route('/Solicitudes/v1', methods=['PUT'])
+def editarSolicitud():
+    solicitud = Solicitud()
+    data = request.get_json()
+    return solicitud.editar(data)
+
+
+# Ruta para eliminar una solicitud
+@app.route('/Carreras/V1/<int:id>', methods=['DELETE'])
+def eliminarCarrera(id):
+    carreras = Carreras()
+    return carreras.eliminarCarrera(id)
+
+
+# Ruta para el listado de las opciones disponibles para titulación
+@app.route('/opciones', methods=['GET'])
+def consultaOpciones():
+    # try:
+    opcion = Opcion()
+    return jsonify(opcion.consultaGeneral())
+
+
+# except:
+# respuesta = {"estatus": "Error", "mensaje": "Recurso no disponible, contacta al administrador del servicio"}
+# return respuesta
+
+# Manipulaciones de errores
+@app.errorhandler(404)
+def errorinterno(e):
+    respuesta = {"estatus": "Error", "mensaje": "Recurso no disponible, contacta al administrador del servicio"}
+    return respuesta
 
 
 if __name__ == '__main__':
